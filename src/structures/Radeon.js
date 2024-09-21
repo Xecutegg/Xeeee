@@ -10,12 +10,14 @@ import Welcome from "../database/models/welcome.js";
 import clientConfig from '../database/models/clientConfig.js';
 
 const nodes = [
+
     {
-        host: "dv-n5.divahost.net",
-        port: 60267,
-        password: "youshallnotpass",
-        secure: false
+        host: v4.lavalink.rocks,
+        port: 443,
+        password: "horizxon.tech",
+        secure: true,
     }
+
 ];
 const PoruOptions = {
     library: "discord.js",
