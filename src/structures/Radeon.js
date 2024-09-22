@@ -12,10 +12,10 @@ import clientConfig from '../database/models/clientConfig.js';
 const nodes = [
 
     {
-        host: "v4.lavalink.rocks",
-        port: 443,
-        password: "horizxon.tech",
-        secure: true,
+        "password": "youshallnotpass",
+        "host": "ll.sleepyinsomniac.eu.org",
+        "port": 80,
+        "secure": false
     }
 
 ];
