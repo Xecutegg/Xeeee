@@ -12,10 +12,10 @@ import clientConfig from '../database/models/clientConfig.js';
 const nodes = [
 
     {
-        "password": "youshallnotpass",
-        "host": "ll.sleepyinsomniac.eu.org",
-        "port": 80,
-        "secure": false
+        "Host": "node.lewdhutao.my.eu.org",
+        "Port": 80,
+        "Password": "youshallnotpass",
+        "Secure": false
     }
 
 ];
