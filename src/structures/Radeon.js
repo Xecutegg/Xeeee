@@ -12,9 +12,9 @@ import clientConfig from '../database/models/clientConfig.js';
 const nodes = [
 
     {
-        "Host": "node.lewdhutao.my.eu.org",
+        "Host": "v4.lavalink.rocks",
         "Port": 80,
-        "Password": "youshallnotpass",
+        "Password": "horizxon.tech",
         "Secure": false
     }
 
