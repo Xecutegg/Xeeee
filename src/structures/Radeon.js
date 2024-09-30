@@ -10,15 +10,14 @@ import Welcome from "../database/models/welcome.js";
 import clientConfig from '../database/models/clientConfig.js';
 
 const nodes = [
-
     {
-        "Host": "v4.lavalink.rocks",
-        "Port": 80,
-        "Password": "horizxon.tech",
-        "Secure": false
-    }
+        host: "node.lewdhutao.my.eu.org",
+        password: "youshallnotpass",
+        port: 80,
+        secure: false,
+        name: "REDEON"
+    }]
 
-];
 const PoruOptions = {
     library: "discord.js",
     defaultPlatform: "ytsearch",
