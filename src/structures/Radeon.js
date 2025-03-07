@@ -1,0 +1,93 @@
+import { Client, GatewayIntentBits, Partials } from 'discord.js';
+import { loadCommands } from './radeonCommands.js';
+import { Poru } from 'poru';
+import { RadeonEvents } from './RadeonEvents.js';
+import setupDatabase from '../database/index.js';
+import Guild from '../database/models/Guild.js';
+import Afk from '../database/models/afk.js';
+import Snipe from '../database/models/snipe.js';
+import Welcome from "../database/models/welcome.js";
+import clientConfig from '../database/models/clientConfig.js';
+
+
+const nodes = [
+    {
+        host : "46.202.82.164",
+        password: "jmlitev4",
+        port : 1027,
+        secure: false,
+        name: "virus"
+    }]
+
+const PoruOptions = {
+    library: "discord.js",
+    defaultPlatform: "ytsearch",
+};
+export class Radeon extends Client {
+    constructor() {
+        super({
+            intents: [
+                GatewayIntentBits.Guilds,
+                GatewayIntentBits.GuildMembers,
+                GatewayIntentBits.MessageContent,
+                GatewayIntentBits.GuildMessages,
+                GatewayIntentBits.DirectMessages,
+                GatewayIntentBits.GuildVoiceStates
+            ],
+            partials: [
+                Partials.Channel,
+                Partials.User,
+                Partials.Message,
+                Partials.GuildMember
+            ],
+            allowedMentions: {
+                repliedUser: true,
+                parse: ['everyone', 'roles', 'users']
+            }
+        });
+        this.poru = new Poru(this, nodes, PoruOptions);
+        this.once('ready', async () => {
+            this.db = { Guild, Afk, Snipe, Welcome, clientConfig };
+            this.commands = await loadCommands(this, "./src/commands");
+            this.events = new RadeonEvents(this).loadEvents();
+            this.poru.init(this);
+        });
+        setupDatabase(process.env.MONGO_URL).then(() => {
+            this.login(process.env.TOKEN);
+        })
+            .catch(err => {
+                console.error(err);
+                process.exit(1);
+            })
+
+            const activities = [
+                { name: 'With T3 Players', type: 0 },// Playing
+                { name: 'on One Dream Esports', type: 1 }, // Liseting
+                { name: 'One Dream Esports', type: 3 }, //Watching
+                { name: 'My Father XecuteYT', type: 2 }, // Liseting
+              ];
+
+        this.on('ready', async () => {
+            console.log(`Logged in as ${this.user.tag}!`);
+
+            this.user.setStatus('dnd');  // online, invisible, idle
+
+            let activityIndex = 0;
+            setInterval(() => {
+              const activity = activities[activityIndex];
+              this.user.setActivity(activity.name, {
+                type: activity.type,
+              });
+          
+              activityIndex = (activityIndex + 1) % activities.length;
+            }, 10000);
+        })
+        process.on('unhandledRejection', async (error) => {
+            console.error('Unhandled Rejection:', error);
+        });
+
+        process.on('uncaughtException', async (error) => {
+            console.error('Uncaught Exception:', error);
+        });
+    }
+}
