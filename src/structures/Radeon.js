@@ -62,7 +62,7 @@ export class Radeon extends Client {
 
             const activities = [
                 { name: 'With T3 Players', type: 0 },// Playing
-                { name: 'on One Dream Esports', type: 1 }, // Liseting
+                { name: 'T3 Scrims', type: 1 }, // Stremeing
                 { name: 'One Dream Esports', type: 3 }, //Watching
                 { name: 'My Father XecuteYT', type: 2 }, // Liseting
               ];
