@@ -10,8 +10,8 @@ const transporter = nodemailer.createTransport({
 });
 
 const approveHtml = (data) => {
-    const {igl, email, teamname, teamlogo, players} = data;
-return `
+    const { igl, email, teamname, teamlogo, players } = data;
+    return `
     <!DOCTYPE html>
 <html>
 
@@ -198,7 +198,7 @@ return `
 
                 <li>
                     <span>Current Team Email:⠀</span>
-                    <span>⠀</span>
+                    <span>⠀${email}</span>
                 </li>
                 </ul>
             </div>
@@ -240,17 +240,267 @@ return `
     `
 }
 
-export const sendMail = async (to, subject, data) => {
+
+
+
+
+const rejectHtml = (data, reason) => {
+    const { igl, email, teamname, teamlogo, players } = data;
+    return `<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BGMI Tournament Registration Rejected</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #fff0f0;
+            margin: 0;
+            padding: 40px 0;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 640px;
+            background: #ffd9d9;
+            border-radius: 32px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(211, 47, 47, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: "";
+            position: absolute;
+            top: -120px;
+            right: -120px;
+            width: 300px;
+            height: 300px;
+            background: rgba(211, 47, 47, 0.08);
+            border-radius: 50%;
+        }
+
+        .container::after {
+            content: "";
+            position: absolute;
+            bottom: -80px;
+            left: -80px;
+            width: 200px;
+            height: 200px;
+            background: rgba(211, 47, 47, 0.1);
+            border-radius: 50%;
+        }
+
+        .header {
+            text-align: center;
+            padding-bottom: 24px;
+            margin-bottom: 32px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .logo {
+            height: 80px;
+            width: 80px;
+            border-radius: 50%;
+            border: 3px solid #d32f2f;
+            padding: 4px;
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            color: #d32f2f;
+            font-size: 26px;
+            margin: 16px 0;
+            letter-spacing: -0.5px;
+        }
+
+        .content {
+            line-height: 1.6;
+            color: #4a5568;
+            position: relative;
+            z-index: 1;
+        }
+
+        .team-details {
+            background: #ffeded;
+            border-radius: 24px;
+            padding: 24px;
+            margin: 24px 0;
+            border: 1px solid #ffe8e8;
+        }
+
+        .team-logo {
+            height: 64px;
+            width: 64px;
+            border-radius: 50%;
+            border: 2px solid #d32f2f;
+            margin: 12px auto;
+            display: block;
+        }
+
+        .player-list {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+
+        .player-list li {
+            padding: 14px 24px;
+            margin: 8px 0;
+            background: #ffffff;
+            border-radius: 50px;
+            box-shadow: 0 2px 8px rgba(211, 47, 47, 0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #d32f2f;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            margin: 8px 14px 8px 0;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease-in-out;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(211, 47, 47, 0.3);
+        }
+
+        .badge::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 300%;
+            height: 300%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: all 0.5s ease-in-out;
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(0);
+        }
+
+        .badge:hover::before {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .badge:hover {
+            background: #bd1708;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(211, 47, 47, 0.4);
+        }
+
+        .important-note {
+            background: #faebeb;
+            padding: 20px;
+            border-radius: 24px;
+            margin: 28px 0;
+            position: relative;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 32px;
+            color: #718096;
+            font-size: 14px;
+            padding-top: 24px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="https://lh3.googleusercontent.com/fife/ALs6j_H3hzxkjG8DcgVvpDnyIJUp3zbYkqQtVlCk4ufrLjeex1GUfHDskO0qBF2CiECg8iN-eXO_ykbDM-DHlB4E6kxuJxCHBbp534uJ8pmVPEbNk2nGScL7mlfobpBJGV7_rccYuvvCRjM6cpfe5rjihugBi0TRMI6DF0KmkC7MQgWh5zDMXXhBDflmYBp2veRX7MTgmS7jm24y1tcWfNKRGrS6euQpyJeJkGTmCnXuzVfp3gyl2WP0vEeXHXoyHh6c5ZQOWsNq9s1r4-KYhdsOOAAiKBROGGN-6ChCFtnXtj7mFZimFg57jZ07c_FMoLb6ZoH5lsus3PoAZfSS0FgVayLjL0Uy7GRYvyHnHbUE1UuuJ2_Ps4TykDfibFgbl0qE7Gjggq8rHJyuyPPcV9ELWD-5M6sFQDIdA2_V1acguztubIM3z2wcOfp7emYuhnh1hlgcCCEI7Nm0xG6T1atTWzkUCdBbvvZYMFKpk9W5SUs1XbU453fzjVVBsXm9Rr3l8BHhQUZQXKeob-tubQjhy7F11eSJq0sJ7RB_dTy9kSLnZVKxLpDtrzrVgrnzvfS6zgs-MB6xxVXLQv6Ua3yrEjvP0967A98CFdBlFyIAJAbUcT0fPbrTmpqfewwD_kQ99lW2RqbCBwbSJgp7nc_aaLOStXUMLDAS8aFW27fqyHmu-55gqsxI5yJUmT5WHfU7l6qPB-rgOD2JeD0ERS9853em9hpmCDlDXEuIGmyGXROz5i4XqlC1s4IXPz3nZGKJrBfL5ci9XqGv8pNCWe0z_WMgfDR7ivrAYjFm-k_t4sI3QfGWDH9m8vgmPCOpPEOTOl9M_uwfRQEcdThaICXu_TwTmYg6i4dd4g5i3n0Z5-URrfOMsePsW02ZJgFuW_WeTWkBMMwqtmHLilG54fs4WchBIvHmLVD7EIhFufLXIp-iqoj_KLtyC_W-zqglErBf9-lxCva6JXekL7lhO1y2Nl__rkeVweUvmpCFfKGdGyr0mSF1LTHhJEOtqjWl-sSIFDTb8TcSnDZnAG_6Ek_MKmMOLSY_RAnCCbpkXLeT9JwijcKXW5p3b9u8an5HR8ezsI_6lO_cMYMopwuLtXYL63pT9LuE3BfIfwgR5S_-2AmD5Hyl8gl5ieVZtjjDeJ82DpKgyW_uPpVVKN3qTlMQ7uwS-h78HGkpbbmcJQydY2h4YHl_fUyuxm_mylj4JFCGlhVijG7EbjpSpyCy_vwseY1liDeu8MBvmV-Y-doopfC8SujT3Ces1b7XJlFXndFRq2E0hjYEkm-Ff4BDhLb8McRvqCz2KeYlVxQ5pK8evMEgnh1bHe_BYFhrVqgM29hAQ52onYTbDnTQAhBoItx1ic30oUWAutQbPykMTbVTGxN8QqCa3IBjBO7WN217bgdvHN4l-bsiDpfBYnlZZ_S1aRN6dSWWSvL0kft7K3f-f_PHV4BIweqit0Gpzqpg-ffuXz0hzClZcZKFyxfYqzKl-UztJUUFdaW471FolG278GH7bdfBKZeiaUi-CjFso0FpHYrYqu47PKGOXxGcTjFWzl2D3lbhNtHPZhw6WB0j0bmNWygVz3JME95_0oY6T4cY8akJoRKsXwTCL-6TiIktH1TjdWTXUXSC0eCE9Rzg9W4rn7PxQSN4OpVT=w1920-h886"
+                class="logo" alt="Organization Logo">
+            <h1>We Regret To Inform Tou That Your Registration Rejected</h1>
+        </div>
+
+        <div class="content">
+            <p>Dear <strong style="color: #d32f2f;">${igl}</strong>,</p>
+            <p>Your team registration for the, <strong>Summer Series Season 2</strong> could not be approved at this
+                time,Check Rejected Reason.</p>
+
+            <div class="team-details">
+                <img src="${teamlogo}"
+                    class="team-logo" alt="Team Logo">
+                <h3 style="text-align: center; color: #d32f2f; margin: 16px 0;">Team: <strong>${teamname}</strong></h3>
+
+                <ul class="player-list">
+                ${players.map((player, i) => `
+                    <li>
+                        <span>Player ${++i}:⠀</span>
+                        <span>⠀${player.name}</span>
+                    </li>
+                `).join('')}
+
+                <li>
+                    <span>Current Team Email:⠀</span>
+                    <span>⠀${email}</span>
+                </li>
+                </ul>
+            </div>
+
+            <div class="important-note">
+                <strong id ="#reason" style="color: #d32f2f;">❗Rejection Reasons:</strong>
+                <p style="margin: 12px 0;">${reason}<br></p>
+                <span class="badge">Resubmit Form </span>
+                <span class="badge">Contect Us</span>
+            </div>
+
+            <p style="text-align: center; margin-top: 32px;">
+                For clarification or appeal, contact:<br>
+                <strong style="color: #d32f2f;">support@onedreamesports.games</strong>
+            </p>
+        </div>
+
+        <div class="footer">
+            <p>Organized by One Dream Esports<br>
+                <small>Official Tournament Partner Of Krafton</small>
+            </p>
+        </div>
+    </div>
+</body>
+
+</html>`
+}
+
+
+
+
+
+export const sendMail = async (to, subject, data, type, content, reason) => {
+    let html;
+    if (type === "approve") {
+        html = approveHtml(data)
+    }
+
+    if (type === "reject") {
+        html = rejectHtml(data, reason)
+    }
+
     try {
-        await transporter.sendMail({
+        const res = await transporter.sendMail({
             from: "no-reply@onedreamesports.games",
             to,
             subject,
-            html: approveHtml(data),
+            ...(html && { html }),
+            ...(content && { text: content }),
         });
-        console.log('Mail sent successfully');
+
+        return res;
     } catch (error) {
         console.log(error);
         return error;
-    } 
+    }
 }   

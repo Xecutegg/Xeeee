@@ -12,6 +12,8 @@ const playerSchema = new mongoose.Schema({
 const registrationSchema = new mongoose.Schema({
   timestamp: { type: String, required: true },
   teamIgl: {type: String, required: true},
+  isApproved: { type: Boolean, default: false },
+  isRejected: { type: Boolean, default: false },
   teamName: { type: String, required: true },
   teamLogo: { type: String, default: '' },
   emailAddress: { type: String, required: true },
