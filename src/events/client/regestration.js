@@ -25,34 +25,22 @@ const sendWhatsAppMessage = async (no, msg, media = null) => {
     }
 };
 
-const approveMsg = (igl, teamname, email, players) => {
-    return `*🎉 BGMI Summer Series Tournament Registration Approved!* 
+const approveMsg = (igl) => {
+    return `
+🎉 BGMI Summer Series Tournament Registration Approved! 
 
-Hello *${igl}*,  
+Hello ${igl},  
 
-✅ Your team's registration has been approved by *One Dream Esports*!  
+✅ Your team's registration has been approved by One Dream Esports!  
 
 Wishing you and your team the best of luck in the upcoming matches!  
 
-━━━━━━━━━━━━━━━  
-*🏆 Team Name:* ${teamname}  
+📢 Important Notice:
 
-👥 *Team Players:*  
-${players.map((player, i) => `${++i}. ${player.name}`).join('\n')}  
-
-📧 *Team Email:* ${email}  
-
-━━━━━━━━━━━━━━━  
-📢 *Important Notice:*
-Your *Room ID, Password, Slot List, and Group Info* will be sent to your registered email.  
+Your Room ID, Password, Slot List, and Group Info will be sent to your registered email.  
 Please make sure your email is active and correct.  
 
-If you need to update your email or phone number, please contact One Dream Esports management within *24 hours* of receiving this approval message.  
-
-━━━━━━━━━━━━━━━  
-Best wishes,  
-*One Dream Esports Team*  
-_Official Tournament Partner of Krafton_`;
+If you need to update your email or phone number, please contact One Dream Esports management within 24 hours of receiving this approval message.`;
 };
 
 const rejectMsg = (igl, teamname, reason) => {
@@ -83,12 +71,15 @@ _Official Tournament Partner of Krafton_`;
 export default {
     name: "interactionCreate",
     async run(interaction) {
+        if(interaction.customId.split("_")[2] !== "reg") return;
         if (!interaction.member.roles.cache.has("1049278089684860980")) {
             return interaction.reply({ content: "Only Event Manager Can Use These button...", flags: 64 });
         }
-
+        
         const dbId = interaction.customId.split("_")[1];
         const db = await Registration.findById(dbId);
+        if (!db) return;
+        
         const players = db.players.map((player) => ({ name: player.inGameName }));
 
         const imgLink = (link) => {
@@ -99,34 +90,27 @@ export default {
         const data = { igl: db.teamIgl || "Cyclone", email: db.emailAddress, teamname: db.teamName, teamlogo: imgLink(db.teamLogo), players };
 
         if (interaction.customId.split("_")[0] === "approve") {
-            // if (db.isApproved) return interaction.reply({ content: "Already Approved", flags: 64 });
+            if (db.isApproved) return interaction.reply({ content: "Already Approved", flags: 64 });
 
             await interaction.reply({ content: "Wait Sending Message...", flags: 64 });
-
             const msg = approveMsg(db.teamIgl, db.teamName, db.emailAddress, players);
-
-            // Send WhatsApp message and email independently
             const whatsappPromise = sendWhatsAppMessage(db.teamLeaderContactWhatsapp, msg).catch((err) => {
                 console.error("WhatsApp Error:", err.message);
             });
-
             const emailPromise = sendMail(db.emailAddress, "Congrats! Your Registration Approved!", data, "approve").catch((err) => {
                 console.error("Email Error:", err.message);
             });
-
             await Promise.all([whatsappPromise, emailPromise]);
-
             db.isApproved = true;
             await db.save();
-
             interaction.followUp({ content: "Registration Approved Mail & WhatsApp Msg Sent", flags: 64 });
         }
 
         if (interaction.customId.split("_")[0] === "reject") {
-            // if (db.isRejected) return interaction.reply({ content: "Already Rejected", flags: 64 });
+            if (db.isRejected) return interaction.reply({ content: "Already Rejected", flags: 64 });
 
             const modal = new ModalBuilder()
-                .setCustomId(`reason_${dbId}`)
+                .setCustomId(`reason_${dbId}_reg`)
                 .setTitle('Rejection Reason');
 
             const reasonInput = new TextInputBuilder()
@@ -144,7 +128,7 @@ export default {
 
         if (interaction.customId.split("_")[0] === "email") {
             const modal = new ModalBuilder()
-                .setCustomId(`cemail_${dbId}`)
+                .setCustomId(`cemail_${dbId}_reg`)
                 .setTitle('Send Custom Email');
 
             const subjectInput = new TextInputBuilder()
@@ -165,9 +149,29 @@ export default {
             const secondRow = new ActionRowBuilder().addComponents(contentInput);
 
             modal.addComponents(firstRow, secondRow);
-
             await interaction.showModal(modal);
         }
+
+
+
+         if (interaction.customId.split("_")[0] === "whatsapp") {
+            const modal = new ModalBuilder()
+                .setCustomId(`cwhatsapp_${dbId}_reg`)
+                .setTitle('Send Custom Whatsapp Message');
+
+            const contentInput = new TextInputBuilder()
+                .setCustomId('whatsapp_content')
+                .setLabel('Whatsapp Content')
+                .setStyle(TextInputStyle.Paragraph)
+                .setPlaceholder('Enter the content of the Whatsapp Message.')
+                .setRequired(true);
+
+            const secondRow = new ActionRowBuilder().addComponents(contentInput);
+
+            modal.addComponents(secondRow);
+            await interaction.showModal(modal);
+        }
+
 
         if (interaction.isModalSubmit() && interaction.customId.split("_")[0] === "cemail") {
             const subject = interaction.fields.getTextInputValue('email_subject');
@@ -176,30 +180,34 @@ export default {
             await sendMail(db.emailAddress, subject, {}, "custom", content).catch((err) => {
                 console.error("Email Error:", err.message);
             });
-
             await interaction.reply({ content: 'Custom email has been sent successfully!', flags: 64 });
         }
 
+        if(interaction.isModalSubmit() && interaction.customId.split("_")[0] === "cwhatsapp") {
+            await interaction.reply({ content: 'Wait Sending Message...', flags: 64 });
+            const content = interaction.fields.getTextInputValue('whatsapp_content');
+            await sendWhatsAppMessage(db.teamLeaderContactWhatsapp, content).catch((err) => {
+                console.error("WhatsApp Error:", err.message);
+            });
+            await interaction.followUp({ content: 'Custom WhatsApp message has been sent successfully!', flags: 64 });
+        }
+
+
+
+
         if (interaction.isModalSubmit() && interaction.customId.split("_")[0] === "reason") {
             interaction.reply({ content: 'Wait Sending Message...', flags: 64 });
-
             const reason = interaction.fields.getTextInputValue('reasontext');
             const msg = rejectMsg(db.teamIgl, db.teamName, reason);
-
-            // Send WhatsApp message and email independently
             const whatsappPromise = sendWhatsAppMessage(db.teamLeaderContactWhatsapp, msg).catch((err) => {
                 console.error("WhatsApp Error:", err.message);
             });
-
             const emailPromise = sendMail(db.emailAddress, "Your Registration Got Rejected!", data, "reject", null, reason).catch((err) => {
                 console.error("Email Error:", err.message);
             });
-
             await Promise.all([whatsappPromise, emailPromise]);
-
             db.isRejected = true;
             await db.save();
-
             await interaction.followUp({ content: 'Rejection Email & WhatsApp Msg Successfully Sent', flags: 64 });
         }
     }
