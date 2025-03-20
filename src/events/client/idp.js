@@ -7,7 +7,7 @@ export default {
     async run(interaction) {
         if (!interaction.customId.startsWith("sendidp")) return;
         if (!interaction.member.roles.cache.has("1049278095313608704")) {
-            return interaction.reply({ content: "Only Staff Can Use These buttons...", flags: FLAGS });
+            return interaction.reply({ content: "Only Staff Can Use These buttons...", flags: 64 });
         }
 //1049278095313608704
 
@@ -53,7 +53,7 @@ export default {
             .setDescription(idp+db.message)
             .setColor(Colors.Blue)
 
-       interaction.channel.send({ content: `${db.title} <@&${db.roleID}>`,embeds: [embed] })
+       interaction.channel.send({ content: `${db.title} ${db.roleID}`,embeds: [embed] })
     }
 
 
