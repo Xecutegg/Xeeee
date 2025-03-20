@@ -12,12 +12,12 @@ import clientConfig from '../database/models/clientConfig.js';
 
 const nodes = [
     {
-        host : "46.202.82.164",
-        password: "jmlitev4",
-        port : 1027,
-        secure: false,
-        name: "virus"
-    }]
+        "identifier": "ChalresNaig Node",
+        "password": "NAIGLAVA-dash.techbyte.host",
+        "host": "lavahatry4.techbyte.host",
+        "port": 3000,
+        "secure": false
+      }]
 
 const PoruOptions = {
     library: "discord.js",
@@ -61,16 +61,16 @@ export class Radeon extends Client {
             })
 
             const activities = [
-                { name: 'With T3 Players', type: 0 },// Playing
-                { name: 'T3 Scrims', type: 1 }, // Stremeing
-                { name: 'One Dream Esports', type: 3 }, //Watching
+                { name: 'T3 Scrims', type: 0 },// Playing
+                { name: 'On One Dream ESports', type: 1 }, // Stremeing
+                { name: 'Satff Aplication/Sheet', type: 3 }, //Watching
                 { name: 'My Father XecuteYT', type: 2 }, // Liseting
               ];
 
         this.on('ready', async () => {
             console.log(`Logged in as ${this.user.tag}!`);
 
-            this.user.setStatus('dnd');  // online, invisible, idle
+            this.user.setStatus('idle');  // online, invisible, idle
 
             let activityIndex = 0;
             setInterval(() => {

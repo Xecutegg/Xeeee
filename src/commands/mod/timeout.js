@@ -21,7 +21,6 @@ export default {
         const user = await resolveUser(args[0]);
         if (!user) return message.reply('Could not find that user.');
 
-        // Determine if a duration was provided
         let duration = args[1] ? ms(args[1]) : null;
         if (duration && (isNaN(duration) || duration < 10000 || duration > 2419200000)) {
             return message.reply('Please specify a valid duration between 10 seconds and 28 days.');
@@ -44,13 +43,17 @@ export default {
         if (!member.moderatable) return message.reply('That user cannot be timed out.');
 
         try {
-            if (duration) {
-                await member.timeout(duration, reason);
-                message.channel.send(`${member.user.tag} has been timed out for ${ms(duration, { long: true })}. Reason: ${reason}`);
-            } else {
-                await member.timeout(2419200000, reason);
-                message.channel.send(`${member.user.tag} has been permanently timed out. Reason: ${reason}`);
+            let timeoutDuration = duration ? duration : 2419200000; // Default to 28 days for permanent timeout
+            await member.timeout(timeoutDuration, reason);
+            
+            // Notify the user via DM
+            try {
+                await user.send(`You have been timed out in **${message.guild.name}** for **${ms(timeoutDuration, { long: true })}**. Reason: **${reason}**`);
+            } catch (dmError) {
+                console.error(`Could not send DM to ${user.tag}:`, dmError);
             }
+            
+            message.channel.send(`${member.user.tag} has been timed out for ${ms(timeoutDuration, { long: true })}. Reason: ${reason}`);
         } catch (error) {
             console.error(`Error timing out user: ${error}`);
             message.reply('An error occurred while trying to timeout the user.');
