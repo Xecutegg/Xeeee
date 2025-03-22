@@ -61,16 +61,16 @@ export class Radeon extends Client {
             })
 
             const activities = [
-                { name: 'T3 Scrims', type: 0 },// Playing
-                { name: 'On One Dream ESports', type: 1 }, // Stremeing
+                { name: 'With T3 Playes', type: 0 },// Playing
+                { name: 'Official App Of One Dream Esports', type: 1 }, // Stremeing
                 { name: 'Satff Aplication/Sheet', type: 3 }, //Watching
-                { name: 'My Father XecuteYT', type: 2 }, // Liseting
+                { name: 'Developer Xecute', type: 2 }, // Liseting
               ];
 
         this.on('ready', async () => {
             console.log(`Logged in as ${this.user.tag}!`);
 
-            this.user.setStatus('idle');  // online, invisible, idle
+            this.user.setStatus('dnd');  // online, invisible, idle
 
             let activityIndex = 0;
             setInterval(() => {
