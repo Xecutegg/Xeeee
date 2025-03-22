@@ -53,6 +53,11 @@ export default {
             return acc;
         }, {});
 
+        // Adding new categories
+        categories['Sticky Messages'] = ['`sticky`', '`sticky-delete`'];
+        categories['IDP Format Setup'] = ['`idp-setup`'];
+        categories['Extra'] = ['`Staff Application`', '`Google Form Registration Data`'];
+
         const owner = await client.users.fetch('841319721860988931');
         const totalGuilds = client.guilds.cache.size;
 
