@@ -58,6 +58,15 @@ export default {
         categories['IDP Format Setup'] = ['`idp-setup`'];
         categories['Extra'] = ['`Staff Application`', '`Google Form Registration Data`'];
 
+        // **Adding Auto-Responder Category**
+        categories['Auto-Responder'] = [
+            '`autoresponder-add`', 
+            '`autoresponder-remove`', 
+            '`autoresponder-list`', 
+            '`autoresponder-enable`', 
+            '`autoresponder-disable`'
+        ];
+
         const owner = await client.users.fetch('841319721860988931');
         const totalGuilds = client.guilds.cache.size;
 
