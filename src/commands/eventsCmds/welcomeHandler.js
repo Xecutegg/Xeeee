@@ -11,20 +11,43 @@ export default {
             if (welcomes.length === 0) return;
 
             for (let welcome of welcomes) {
-                let msgContent = replacePlaceholders(welcome.welcomeMessage, member, member.guild);
+                let msgContent = replacePlaceholders(welcome.welcomeMessage || "Welcome!", member, member.guild);
                 let options = welcome.embedOptions;
-                let embed = options
-                    ? await buildEmbed(await replacePlaceholdersInEmbed({ ...options }, member, member.guild))
-                    : null;
-                
+                let embed = null;
+
+                if (options) {
+                    let updatedEmbed = await replacePlaceholdersInEmbed({ ...options }, member, member.guild);
+
+                    // ✅ Ensure color is stored as an integer (not string)
+                    if (updatedEmbed.color && typeof updatedEmbed.color === "string") {
+                        updatedEmbed.color = parseInt(updatedEmbed.color.replace("#", ""), 16);
+                    }
+
+                    embed = await buildEmbed(updatedEmbed);
+
+                    // ✅ Save updated color format in the database
+                    await WelcomeSettings.findOneAndUpdate(
+                        { _id: welcome._id },
+                        { $set: { "embedOptions.color": updatedEmbed.color } },
+                        { new: true }
+                    );
+                }
+
+                // ✅ Ensure at least one valid property is present
                 let toSend = {};
                 if (welcome.type === "message") {
                     toSend.content = msgContent;
                 } else if (welcome.type === "embed") {
-                    toSend.embeds = [embed];
+                    toSend.embeds = embed ? [embed] : [];
                 } else {
                     toSend.content = msgContent;
                     if (embed) toSend.embeds = [embed];
+                }
+
+                // ✅ Prevent sending an empty message
+                if (!toSend.content && (!toSend.embeds || toSend.embeds.length === 0)) {
+                    console.error("Message object is missing required properties.");
+                    return;
                 }
 
                 const channel = client.channels.cache.get(welcome.channelId);
@@ -37,12 +60,8 @@ export default {
                     }
                 } else {
                     await WelcomeSettings.findOneAndDelete({ channelId: welcome.channelId })
-                        .then(() => {
-                            console.log(`Deleted welcome settings for channel ${welcome.channelId}.`);
-                        })
-                        .catch(err => {
-                            console.error(`Error deleting welcome settings for channel ${welcome.channelId}: ${err.message}`);
-                        });
+                        .then(() => console.log(`Deleted welcome settings for channel ${welcome.channelId}.`))
+                        .catch(err => console.error(`Error deleting welcome settings for channel ${welcome.channelId}: ${err.message}`));
                     console.error(`Channel with ID ${welcome.channelId} not found.`);
                 }
             }
@@ -78,7 +97,7 @@ export function replacePlaceholdersInEmbed(embed, member, guild) {
     if (embed.author && embed.author.name) embed.author.name = replacePlaceholders(embed.author.name, member, guild);
     if (embed.author && embed.author.iconURL) embed.author.iconURL = replacePlaceholders(embed.author.iconURL, member, guild);
 
-    // Ensure thumbnail and image URLs are updated
+    // ✅ Ensure thumbnail and image only update the URL property
     if (embed.thumbnail && embed.thumbnail.url) {
         embed.thumbnail.url = replacePlaceholders(embed.thumbnail.url, member, guild);
     }
@@ -86,7 +105,6 @@ export function replacePlaceholdersInEmbed(embed, member, guild) {
         embed.image.url = replacePlaceholders(embed.image.url, member, guild);
     }
 
-    // Ensure fields are updated properly
     if (embed.fields) {
         embed.fields = embed.fields.map(field => ({
             name: replacePlaceholders(field.name, member, guild),
@@ -94,13 +112,5 @@ export function replacePlaceholdersInEmbed(embed, member, guild) {
             inline: field.inline,
         }));
     }
-
-    // Fix: Ensure color is updated correctly
-    if (embed.color) {
-        if (typeof embed.color === "string") {
-            embed.color = parseInt(embed.color.replace("#", ""), 16) || null;
-        }
-    }
-
     return embed;
 }
