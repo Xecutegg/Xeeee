@@ -14,7 +14,9 @@ export default {
                 let msgContent = replacePlaceholders(welcome.welcomeMessage, member, member.guild);
                 let options = welcome.embedOptions;
                 let embed = options
-                    ? await buildEmbed(await replacePlaceholdersInEmbed({ ...options }, member, member.guild)) : null;
+                    ? await buildEmbed(await replacePlaceholdersInEmbed({ ...options }, member, member.guild))
+                    : null;
+                
                 let toSend = {};
                 if (welcome.type === "message") {
                     toSend.content = msgContent;
@@ -76,14 +78,15 @@ export function replacePlaceholdersInEmbed(embed, member, guild) {
     if (embed.author && embed.author.name) embed.author.name = replacePlaceholders(embed.author.name, member, guild);
     if (embed.author && embed.author.iconURL) embed.author.iconURL = replacePlaceholders(embed.author.iconURL, member, guild);
 
-    // Ensure thumbnail and image are only updating the url property
-    if (embed.thumbnail) {
-        embed.thumbnail = replacePlaceholders(embed.thumbnail, member, guild);
+    // Ensure thumbnail and image URLs are updated
+    if (embed.thumbnail && embed.thumbnail.url) {
+        embed.thumbnail.url = replacePlaceholders(embed.thumbnail.url, member, guild);
     }
-    if (embed.image) {
-        embed.image = replacePlaceholders(embed.image, member, guild);
+    if (embed.image && embed.image.url) {
+        embed.image.url = replacePlaceholders(embed.image.url, member, guild);
     }
 
+    // Ensure fields are updated properly
     if (embed.fields) {
         embed.fields = embed.fields.map(field => ({
             name: replacePlaceholders(field.name, member, guild),
@@ -91,5 +94,13 @@ export function replacePlaceholdersInEmbed(embed, member, guild) {
             inline: field.inline,
         }));
     }
+
+    // Fix: Ensure color is updated correctly
+    if (embed.color) {
+        if (typeof embed.color === "string") {
+            embed.color = parseInt(embed.color.replace("#", ""), 16) || null;
+        }
+    }
+
     return embed;
 }
