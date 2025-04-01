@@ -6,8 +6,8 @@ export default {
     name: "interactionCreate",
     async run(interaction) {
         if (!interaction.customId.startsWith("sendidp")) return;
-        if (!interaction.member.roles.cache.has("1049278095313608704")) {
-            return interaction.reply({ content: "Only Staff Can Use These buttons...", flags: 64 });
+        if (!message.member.permissions.has('ModerateMembers')) {
+            return interaction.reply({ content: "Only Managment Can Use This You Can't...", flags: 64 });
         }
 //1049278095313608704
 
