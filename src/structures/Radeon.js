@@ -70,7 +70,7 @@ export class Radeon extends Client {
         this.on('ready', async () => {
             console.log(`Logged in as ${this.user.tag}!`);
 
-            this.user.setStatus('idel');  // online, invisible, idle
+            this.user.setStatus('dnd');  // online, invisible, idle
 
             let activityIndex = 0;
             setInterval(() => {
