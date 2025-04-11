@@ -1,5 +1,5 @@
 import { EmbedBuilder } from "discord.js";
-import StrikyMessage from "../../database/models/stickMsg.js";
+import StickyMessage from "../../database/models/stickMsg.js"; // ✅ Fixed typo in model import
 
 export default {
     name: "sticky",
@@ -16,45 +16,49 @@ export default {
                 return message.reply("❌ Please provide a message to make sticky.");
             }
 
-            let data = await StrikyMessage.findOne({ channelId: message.channel.id });
+            // Check for existing sticky message in the channel
+            const existingData = await StickyMessage.findOne({ channelId: message.channel.id });
 
-            // If a sticky message exists, delete the old one first
-            if (data && data.messageId) {
+            // If a sticky message exists, attempt to delete the old one
+            if (existingData?.messageId) {
                 try {
-                    const oldMsg = await message.channel.messages.fetch(data.messageId);
+                    const oldMsg = await message.channel.messages.fetch(existingData.messageId);
                     if (oldMsg) await oldMsg.delete();
                 } catch (err) {
-                    console.log("Old message not found, skipping deletion.");
+                    console.warn("⚠️ Previous sticky message could not be fetched or deleted.");
                 }
             }
 
-            // Create a new embed
+            // Create the new sticky message embed
             const embed = new EmbedBuilder()
                 .setColor("#0b77f8")
-                .setAuthor({ name: message.author.username, iconURL: message.author.displayAvatarURL() })
+                .setAuthor({
+                    name: message.author.tag,
+                    iconURL: message.author.displayAvatarURL(),
+                })
                 .setDescription(args.join(" "))
-                .setFooter({ text: "This Was Just A Sticky Message, Nothing Else." })
+                .setFooter({ text: "This is a sticky message." })
                 .setTimestamp();
 
-            // Send the sticky message
-            const stickyMsg = await message.channel.send({ embeds: [embed] });
+            // Send the sticky message to the channel
+            const newStickyMsg = await message.channel.send({ embeds: [embed] });
 
-            // Save in database, including embedOptions
-            await StrikyMessage.findOneAndUpdate(
+            // Save or update the sticky message data in MongoDB
+            await StickyMessage.findOneAndUpdate(
                 { channelId: message.channel.id },
                 {
                     guildId: message.guild.id,
-                    messageId: stickyMsg.id,
+                    messageId: newStickyMsg.id,
                     message: args.join(" "),
                     channelId: message.channel.id,
-                    embedOptions: embed.toJSON(),  // ✅ Store embed options for later use
+                    embedOptions: embed.toJSON(), // Optional for re-creating later
                 },
                 { upsert: true }
             );
 
-            return message.reply("✅ Message has been made sticky.");
+            return message.reply("✅ Sticky message has been set successfully.");
         } catch (error) {
-            console.error("Sticky command error:", error);
+            console.error("❌ Error in sticky command:", error);
             return message.reply("❌ An error occurred while setting the sticky message.");
         }
     },

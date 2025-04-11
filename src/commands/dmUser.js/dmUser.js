@@ -2,13 +2,14 @@ import { EmbedBuilder } from "discord.js";
 import StickyMessage from "../../database/models/stickMsg.js";
 
 export default {
-    name: "dm",
+    name: "dmuser",
     category: "utility",
     description: "Send a direct message to a user",
-    usage: "dm <@user> <message>",
+    usage: "dmuser <@user> <message>",
     botperms: ["SendMessages"],
     userperms: ["ManageMessages"],
     aliases: ["directmessage", "message"],
+
     async execute(client, message, args) {
         try {
             if (!args.length || !message.mentions.users.size) {
@@ -18,7 +19,9 @@ export default {
             const user = message.mentions.users.first();
             const dmMessage = args.slice(1).join(" ");
 
-            if (!dmMessage) return message.reply("❌ Please provide a message to send.");
+            if (!dmMessage) {
+                return message.reply("❌ Please provide a message to send.");
+            }
 
             const dmEmbed = new EmbedBuilder()
                 .setColor("#0b77f8")
@@ -53,13 +56,14 @@ export default {
                     channelId: message.channel.id
                 });
             } catch (dbError) {
-                console.error("❌ Failed to save DM in database:", dbError);
+                console.error("Failed to save DM in database:", dbError);
                 return message.reply("✅ DM sent, but logging failed. Please check the database.");
             }
 
             return message.reply({ embeds: [confirmationEmbed] });
+
         } catch (error) {
-            console.error("Error in DM command:", error);
+            console.error("Error in dmuser command:", error);
             return message.reply("❌ An unexpected error occurred.");
         }
     },

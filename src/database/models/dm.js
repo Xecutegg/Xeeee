@@ -1,15 +1,47 @@
 import mongoose from 'mongoose';
 
 const stickyMessageSchema = new mongoose.Schema({
-    guildId: { type: String, required: true },  // ✅ FIXED TYPO
-    messageId: { type: String, required: true },
-    message: { type: String, required: true },
-    channelId: { type: String, required: true },
-    deleteDuration: { type: String, default: null },
-    type: { type: String, default: "message" },
-    embedOptions: { type: Object, default: {} },
-    status: { type: Boolean, default: true, enum: [true, false] }
-}, { timestamps: true });
+    guildId: {
+        type: String,
+        required: true,
+        trim: true,
+    },
+    messageId: {
+        type: String,
+        required: true,
+        trim: true,
+    },
+    message: {
+        type: String,
+        required: true,
+        trim: true,
+    },
+    channelId: {
+        type: String,
+        required: true,
+        trim: true,
+    },
+    deleteDuration: {
+        type: String,
+        default: null,
+        trim: true,
+    },
+    type: {
+        type: String,
+        default: "message",
+        enum: ["message", "embed"],
+    },
+    embedOptions: {
+        type: Object,
+        default: {},
+    },
+    status: {
+        type: Boolean,
+        default: true,
+    },
+}, {
+    timestamps: true,
+    versionKey: false, // ⛔ Removes unnecessary __v field
+});
 
-const StickyMessage = mongoose.model('StickyMessage', stickyMessageSchema);
-export default StickyMessage;
+export default mongoose.models.StickyMessage || mongoose.model('StickyMessage', stickyMessageSchema);
