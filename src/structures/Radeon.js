@@ -11,11 +11,11 @@ import clientConfig from "../database/models/clientConfig.js";
 
 const nodes = [
   {
-    identifier: "ChalresNaig Node",
-    password: "NAIGLAVA-dash.techbyte.host",
-    host: "lavahatry4.techbyte.host",
-    port: 3000,
-    secure: false,
+    "identifier": "Musik Hosting",
+    "password": "wwweasycodero",
+    "host": "lavalink-v2.pericsq.ro",
+    "port": 6677,
+    "secure": false
   },
 ];
 
