@@ -7,8 +7,8 @@ export default {
     type: "messageCreate",
 
     async execute(client, message) {
-        // Ignore bot messages
-        if (message.author.bot) return;
+        // Ignore DMs or bot messages
+        if (!message.guild || message.author?.bot) return;
 
         try {
             const stickyData = await StickyMessage.findOne({ channelId: message.channel.id });
@@ -26,11 +26,18 @@ export default {
 
             // Re-send the sticky message
             let newStickyMsg;
-            if (stickyData.embedOptions && Object.keys(stickyData.embedOptions).length > 0) {
-                const embed = new EmbedBuilder(stickyData.embedOptions); // Recreate embed
+            if (
+                stickyData.embedOptions &&
+                typeof stickyData.embedOptions === "object" &&
+                Object.keys(stickyData.embedOptions).length > 0
+            ) {
+                const embed = new EmbedBuilder(stickyData.embedOptions); // Build embed safely
                 newStickyMsg = await message.channel.send({ embeds: [embed] });
-            } else {
+            } else if (typeof stickyData.message === "string") {
                 newStickyMsg = await message.channel.send(stickyData.message);
+            } else {
+                console.warn("⚠️ Sticky message content missing or invalid.");
+                return;
             }
 
             // Update the stored message ID
