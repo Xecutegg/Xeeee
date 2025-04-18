@@ -4,23 +4,36 @@ export default {
     name: "stickydelete",
     category: "sticky",
     description: "Delete a sticky message",
-    usage: "stickyDelete",
-    botperms: ["ManageMessages"],
-    userperms: ["ManageMessages"],
-    aliases: ["Delstick"],
+    usage: "stickydelete",
+    botPermissions: ["ManageMessages"],
+    userPermissions: ["ManageMessages"],
+    aliases: ["delstick"],
+    
     async execute(client, message, args) {
         try {
             const data = await StrikyMessage.findOne({ channelId: message.channel.id });
-            if (!data) return message.reply("No sticky message found in this channel");
+            if (!data) {
+                return message.reply("❌ No sticky message found in this channel.");
+            }
 
-            const prevmsg = await message.channel.messages.fetch(data.messageId).catch(() => null);
-            if (prevmsg) await prevmsg.delete().catch(() => {});
+            try {
+                const prevmsg = await message.channel.messages.fetch(data.messageId);
+                if (prevmsg) {
+                    await prevmsg.delete().catch(() => {});
+                }
+            } catch (err) {
+                if (err.code === 10008) {
+                    console.warn("⚠️ Sticky message already deleted (Unknown Message).");
+                } else {
+                    console.error("Error deleting sticky message:", err);
+                }
+            }
 
             await StrikyMessage.findOneAndDelete({ channelId: message.channel.id });
-            return message.reply("Sticky message has been deleted");
+            return message.reply("✅ Sticky message has been successfully deleted.");
         } catch (error) {
-         throw new Error(error.message);
-         
+            console.error("Unhandled error in stickydelete command:", error);
+            return message.reply("❌ An error occurred while trying to delete the sticky message.");
         }
     },
 };

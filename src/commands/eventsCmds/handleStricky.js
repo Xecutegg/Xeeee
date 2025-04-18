@@ -7,44 +7,53 @@ export default {
     type: "messageCreate",
 
     async execute(client, message) {
-        // Ignore DMs or bot messages
         if (!message.guild || message.author?.bot) return;
 
         try {
             const stickyData = await StickyMessage.findOne({ channelId: message.channel.id });
             if (!stickyData) return;
 
-            // Delete the previous sticky message if it exists
+            // Try deleting previous sticky message
             if (stickyData.messageId) {
                 try {
-                    const previousStickyMsg = await message.channel.messages.fetch(stickyData.messageId);
-                    if (previousStickyMsg) await previousStickyMsg.delete().catch(() => {});
+                    const previousStickyMsg = await message.channel.messages.fetch(stickyData.messageId).catch(() => null);
+                    if (previousStickyMsg) {
+                        await previousStickyMsg.delete().catch(() => {});
+                    } else {
+                        console.warn(`⚠️ Sticky message already deleted or not found (ID: ${stickyData.messageId})`);
+                    }
                 } catch (err) {
                     console.warn("⚠️ Could not fetch or delete the previous sticky message:", err.message);
                 }
             }
 
-            // Re-send the sticky message
+            // Send new sticky message
             let newStickyMsg;
+
             if (
                 stickyData.embedOptions &&
                 typeof stickyData.embedOptions === "object" &&
                 Object.keys(stickyData.embedOptions).length > 0
             ) {
-                const embed = new EmbedBuilder(stickyData.embedOptions); // Build embed safely
+                const embed = new EmbedBuilder(stickyData.embedOptions);
                 newStickyMsg = await message.channel.send({ embeds: [embed] });
-            } else if (typeof stickyData.message === "string") {
+            } else if (typeof stickyData.message === "string" && stickyData.message.trim().length > 0) {
                 newStickyMsg = await message.channel.send(stickyData.message);
             } else {
-                console.warn("⚠️ Sticky message content missing or invalid.");
+                console.warn("⚠️ Sticky message content is missing or invalid.");
                 return;
             }
 
-            // Update the stored message ID
-            stickyData.messageId = newStickyMsg.id;
-            await stickyData.save();
+            // Safely update the DB with new messageId
+            const exists = await StickyMessage.exists({ _id: stickyData._id });
+            if (exists) {
+                stickyData.messageId = newStickyMsg.id;
+                await stickyData.save();
+            } else {
+                console.warn(`⚠️ Sticky document no longer exists in DB (_id: ${stickyData._id})`);
+            }
         } catch (error) {
-            console.error("❌ Error in stickyMessageHandler event:", error);
+            console.error("❌ Error in stickyMessageHandler event:", error.message);
         }
     }
 };

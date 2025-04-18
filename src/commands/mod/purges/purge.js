@@ -1,6 +1,6 @@
 export default {
     name: "purge",
-    description: "Clears a specified number of messages from the channel.",
+    description: "Clears a specified number of unpinned messages from the channel, including the command message.",
     usage: "<number>",
     userPermissions: ['ManageMessages'],
     botPermissions: ['ManageMessages'],
@@ -13,11 +13,25 @@ export default {
         }
 
         try {
-            const messages = await message.channel.messages.fetch({ limit: amount });
+            const fetched = await message.channel.messages.fetch({ limit: 100 });
+
+            // Filter out pinned messages and include the command message itself
+            const unpinnedMessages = fetched.filter(m => !m.pinned);
+            const messagesToDelete = unpinnedMessages.first(amount);
+
+            // Add the command message itself if it's not already included
+            if (!messagesToDelete.find(m => m.id === message.id)) {
+                messagesToDelete.push(message);
+            }
+
+            if (messagesToDelete.length === 0) {
+                return message.reply("No unpinned messages found to delete.");
+            }
+
             const userMessageCount = new Map();
 
-            await message.channel.bulkDelete(messages).then(msg => {
-                msg.forEach(m => {
+            await message.channel.bulkDelete(messagesToDelete).then(msgs => {
+                msgs.forEach(m => {
                     if (!userMessageCount.has(m.author.tag)) {
                         userMessageCount.set(m.author.tag, 0);
                     }
@@ -25,13 +39,14 @@ export default {
                 });
             });
 
-            let resultMessage = `I have deleted ${messages.size} messages.\nDeleted messages per user:\n`;
+            let resultMessage = `I have deleted ${messagesToDelete.length} unpinned message(s).\nDeleted messages per user:\n`;
             userMessageCount.forEach((count, user) => {
                 resultMessage += `\`${user}: ${count} message(s)\`\n`;
             });
+
             let msg = await message.channel.send(resultMessage);
             setTimeout(() => {
-                msg.delete().catch(() => { });
+                msg.delete().catch(() => {});
             }, 5000);
         } catch (error) {
             console.error(`Error in purge command: ${error.message}`);
