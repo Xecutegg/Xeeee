@@ -1,22 +1,23 @@
 import Idp from '../../database/models/idp.js';
-import { EmbedBuilder, Colors } from 'discord.js';
+import { EmbedBuilder, Colors, PermissionsBitField } from 'discord.js';
 import { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } from "discord.js";
 
 export default {
     name: "interactionCreate",
     async run(interaction) {
         if (!interaction.customId.startsWith("sendidp")) return;
-        if (!interaction.member.roles.cache.has("1049278095313608704", "1049279551085215764", "1260253614081839136")) {
-            return interaction.reply({ content: "Only Management Can Use These buttons...", flags: 64 });
+
+        // ✅ Check if user has ManageMessages permission
+        if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageMessages)) {
+            return interaction.reply({ content: "Ye Tere Liye Nhi Hai,Yaha apni maa chudane aya hai kya?.", flags: 64 });
         }
-//1049278095313608704
 
         const db = await Idp.findOne({ channelID: interaction.channel.id, guildID: interaction.guild.id });
 
-    if(interaction.customId === 'sendidp') {
-        const model = new ModalBuilder()
-            .setCustomId('sendidp_model')
-            .setTitle('IDP INFO')
+        if (interaction.customId === 'sendidp') {
+            const model = new ModalBuilder()
+                .setCustomId('sendidp_model')
+                .setTitle('IDP INFO');
 
             const id = new TextInputBuilder()
                 .setCustomId('id')
@@ -33,30 +34,26 @@ export default {
                 .setPlaceholder('Enter The Password Of Room')
                 .setRequired(true);
 
-                const firstRow = new ActionRowBuilder().addComponents(id);
-                const secondRow = new ActionRowBuilder().addComponents(pass);
+            const firstRow = new ActionRowBuilder().addComponents(id);
+            const secondRow = new ActionRowBuilder().addComponents(pass);
 
-                model.addComponents(firstRow, secondRow);
-                await interaction.showModal(model);
-    }
+            model.addComponents(firstRow, secondRow);
+            return await interaction.showModal(model);
+        }
 
-    if(interaction.customId === 'sendidp_model'){
-        interaction.deferUpdate();
+        if (interaction.customId === 'sendidp_model') {
+            await interaction.deferUpdate();
 
-        const id = interaction.fields.getTextInputValue('id');
-        const pass = interaction.fields.getTextInputValue('pass');
-    
-        const idp = `
-        \`\`\`yaml\nID: ${id}\nPASSWORD: ${pass}\nMAP: ${db.map}\nSTART TIME: ${db.startTime}\`\`\`
-        `
-        const embed = new EmbedBuilder()
-            .setDescription(idp+db.message)
-            .setColor(Colors.Blue)
+            const id = interaction.fields.getTextInputValue('id');
+            const pass = interaction.fields.getTextInputValue('pass');
 
-       interaction.channel.send({ content: `${db.title} ${db.roleID}`,embeds: [embed] })
-    }
+            const idp = `\`\`\`yaml\nID: ${id}\nPASSWORD: ${pass}\nMAP: ${db.map}\nSTART TIME: ${db.startTime}\`\`\``;
 
+            const embed = new EmbedBuilder()
+                .setDescription(idp + db.message)
+                .setColor(Colors.Blue);
 
-
+            interaction.channel.send({ content: `${db.title} ${db.roleID}`, embeds: [embed] });
+        }
     }
 }
