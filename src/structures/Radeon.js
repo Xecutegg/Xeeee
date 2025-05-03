@@ -61,8 +61,11 @@ export class Radeon extends Client {
         process.exit(1);
       });
 
-      const totalUsers = client.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0);
-
+    this.on("ready", async () => {
+      console.log(`Logged in as ${this.user.tag}!`);
+      
+      const totalUsers = this.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0);
+      
       const activities = [
         { name: "One Dream Scrims ", type: 0 }, // Playing
         { name: "#OneDreamKiJanta", type: 1 }, // Streaming
@@ -70,12 +73,8 @@ export class Radeon extends Client {
         { name: "xhelp | x", type: 2 }, // Listening
         { name: `${totalUsers} Members`, type: 3 }, // Watching
       ];
-      
 
-    this.on("ready", async () => {
-      console.log(`Logged in as ${this.user.tag}!`);
-
-      this.user.setStatus("idle"); // online, invisible, idle
+      this.user.setStatus("dnd"); // online, invisible, idle
 
       let activityIndex = 0;
       setInterval(() => {
