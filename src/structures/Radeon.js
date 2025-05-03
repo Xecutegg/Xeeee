@@ -61,17 +61,21 @@ export class Radeon extends Client {
         process.exit(1);
       });
 
-    const activities = [
-      { name: "With Raxxy", type: 0 }, // Playing
-      { name: "Official App Of One Dream Esports", type: 1 }, // Streaming
-      { name: "Satff Aplication/Sheet", type: 3 }, //Watching
-      { name: "Developer Xecute", type: 2 }, // Liseting
-    ];
+      const totalUsers = client.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0);
+
+      const activities = [
+        { name: "One Dream Scrims ", type: 0 }, // Playing
+        { name: "#OneDreamKiJanta", type: 1 }, // Streaming
+        { name: "One Dream Esports", type: 3 }, // Watching
+        { name: "xhelp | x", type: 2 }, // Listening
+        { name: `${totalUsers} Members`, type: 3 }, // Watching
+      ];
+      
 
     this.on("ready", async () => {
       console.log(`Logged in as ${this.user.tag}!`);
 
-      this.user.setStatus("dnd"); // online, invisible, idle
+      this.user.setStatus("idle"); // online, invisible, idle
 
       let activityIndex = 0;
       setInterval(() => {
