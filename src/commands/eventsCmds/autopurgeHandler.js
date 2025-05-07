@@ -1,4 +1,4 @@
-import AutoPurge from "../../models/AutoPurge.js";
+import AutoPurge from "../../database/models/AutoPurge.js";
 
 export default async (client) => {
     setInterval(async () => {

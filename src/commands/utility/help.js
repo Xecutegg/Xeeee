@@ -18,7 +18,8 @@ export default {
                     .setTitle(`Help - ${command.name}`)
                     .setDescription(`**Description:** ${command.description || 'No description available'}\n` +
                                     `**Usage:** ${prefix}${command.name} ${command.usage || ''}\n` +
-                                    `**Category:** ${command.category || 'General'}`)
+                                    `**Category:** ${command.category || 'General'}` +
+                                    `${command.aliases ? `\n**Aliases:** ${command.aliases.join(', ')}` : ''}`)
                     .setColor(Colors.Blue)
                     .setAuthor({ name: message.author.tag, iconURL: message.author.displayAvatarURL() });
                 
@@ -42,34 +43,48 @@ export default {
             }
         }
 
-        // General help with all categories and commands
-        const categories = client.commands.reduce((acc, command) => {
-            if (command.category && !acc[command.category]) {
-                acc[command.category] = [];
+        // Create a clean categories map
+        const categoriesMap = new Map();
+        
+        // Collect actual commands from the client
+        client.commands.forEach(command => {
+            if (command.name && !command.isEvent && !command.hidden) {
+                const category = command.category ? command.category.toLowerCase() : 'general';
+                
+                if (!categoriesMap.has(category)) {
+                    categoriesMap.set(category, new Set());
+                }
+                
+                categoriesMap.get(category).add(`\`${command.name}\``);
             }
-            if (command.category) {
-                acc[command.category].push(`\`${command.name}\``);
-            }
-            return acc;
-        }, {});
-
-        // Adding new categories
-        categories['Sticky Messages'] = ['`sticky`', '`sticky-delete`'];
-        categories['IDP Format Setup'] = ['`idp-setup`'];
-        categories['Extra'] = ['`Staff Application`', '`Google Form Registration Data`'];
-
-        // **Adding Auto-Responder Category**
-        categories['Auto-Responder'] = [
-            '`autoresponder-add`', 
-            '`autoresponder-remove`', 
-            '`autoresponder-list`', 
-            '`autoresponder-enable`', 
-            '`autoresponder-disable`'
+        });
+        
+        // Convert to regular object with arrays
+        const categories = {};
+        for (const [category, commandsSet] of categoriesMap) {
+            categories[category] = Array.from(commandsSet).sort();
+        }
+        
+        // Define sticky messages manually to ensure they appear
+        categories['sticky'] = ['`sticky`', '`sticky-delete`'];
+        categories['idp'] = ['`idp-setup`'];
+        
+        // Define autoresponder commands in a single place
+        // Remove any existing autoresponder categories first
+        delete categories['autoresponder'];
+        delete categories['auto-responder'];
+        
+        // Add a single, correct category
+        categories['autoresponder'] = [
+            '`autoresponder-create`', 
+            '`autoresponderdelete`', 
+            '`autoresponderlist`', 
+            '`autoresponder-toggle`'
         ];
-
-        const owner = await client.users.fetch('841319721860988931');
+        
+        // Build the embed
         const totalGuilds = client.guilds.cache.size;
-
+        
         const embed = new EmbedBuilder()
             .setTitle('Help - Available Commands')
             .setAuthor({ name: message.author.tag, iconURL: message.author.displayAvatarURL() })
@@ -81,12 +96,43 @@ export default {
                 inline: false
             });
 
+        // Add categories in a specific order
+        const orderedCategories = [
+            'general',
+            'utility', 
+            'mod',
+            'autoresponder',
+            'music',
+            'sticky',
+            'welcomer',
+            'idp'
+        ];
+        
+        // First add ordered categories
+        orderedCategories.forEach(categoryKey => {
+            if (categories[categoryKey] && categories[categoryKey].length > 0) {
+                const displayName = categoryKey.charAt(0).toUpperCase() + categoryKey.slice(1);
+                embed.addFields({
+                    name: `${displayName} Commands`,
+                    value: categories[categoryKey].join(', '),
+                    inline: false
+                });
+                
+                // Remove from categories to avoid duplication
+                delete categories[categoryKey];
+            }
+        });
+        
+        // Then add any remaining categories
         for (const [category, commands] of Object.entries(categories)) {
-            embed.addFields({
-                name: `${category.charAt(0).toUpperCase() + category.slice(1)} Commands`,
-                value: commands.length ? commands.join(', ') : 'No commands available',
-                inline: false
-            });
+            if (commands.length > 0) {
+                const displayName = category.charAt(0).toUpperCase() + category.slice(1);
+                embed.addFields({
+                    name: `${displayName} Commands`,
+                    value: commands.join(', '),
+                    inline: false
+                });
+            }
         }
 
         message.reply({ embeds: [embed] });
