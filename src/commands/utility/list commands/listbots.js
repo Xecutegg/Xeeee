@@ -9,11 +9,12 @@ export default {
     botperms: ["SendMessages"],
     async execute(client, message, args) {
         try {
+            const loadingMsg = await message.reply("Fetching bots...");
             let members = await message.guild.members.fetch();
             // Filter out bots
             let bots = members.filter(member => member.user.bot);
 
-            if (bots.size === 0) return msg.edit("No bots found in this server.");
+            if (bots.size === 0) return loadingMsg.edit("No bots found in this server.");
 
             const PerPage = 10;
             const totalPages = Math.ceil(bots.size / PerPage);

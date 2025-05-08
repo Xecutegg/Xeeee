@@ -6,6 +6,9 @@ export default {
     name: 'idp-setup',
     userPermissions: ['ManageMessages'],
     botPermissions: ['ManageMessages'],
+    category: 'idp',
+    description: 'Set up an IDP (Interactive Data Panel)',
+    usage: 'idp-setup',
     async execute(client, message, args) {
 
         const embed = new EmbedBuilder()
