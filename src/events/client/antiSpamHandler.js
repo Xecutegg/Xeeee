@@ -4,6 +4,7 @@ import antiSpam from '../../utils/antiSpam.js';
 export default {
     name: "messageCreate",
     async run(message) {
+        // Pass the client correctly from this.client to the execute method
         await this.execute(this.client, message);
     },
     isEvent: true,
@@ -13,6 +14,12 @@ export default {
         if (!message.guild || message.author.bot) return;
         
         try {
+            // Make sure client and client.db exist before trying to access
+            if (!client || !client.db) {
+                console.error('Client or client.db is undefined in antiSpamHandler');
+                return;
+            }
+            
             // Check if the guild has anti-spam enabled in database
             const guildData = await client.db.Guild.findOne({ guildId: message.guild.id });
             if (!guildData || !guildData.antiSpam || !guildData.antiSpam.enabled) return;

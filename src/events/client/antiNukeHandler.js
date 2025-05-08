@@ -4,11 +4,18 @@ import antiNuke from '../../utils/antiNuke.js';
 export default {
     name: "ready",
     async run() {
-        await this.execute(...arguments);
+        // Ensure client is correctly passed to the execute method
+        await this.execute(this.client);
     },
     isEvent: true,
     type: "ready", // Register once on startup
     async execute(client) {
+        // Check if client and client.db exist
+        if (!client || !client.db) {
+            console.error('Client or client.db is undefined in antiNukeHandler');
+            return;
+        }
+        
         // Initialize the anti-nuke system for all guilds
         await initializeAntiNuke(client);
         
@@ -17,6 +24,12 @@ export default {
             if (!channel.guild) return;
             
             try {
+                // Verify client.db exists within the event handler
+                if (!client.db) {
+                    console.error('client.db is undefined in channel delete handler');
+                    return;
+                }
+                
                 const guildData = await client.db.Guild.findOne({ guildId: channel.guild.id });
                 if (!guildData || !guildData.antiNuke || !guildData.antiNuke.enabled) return;
                 
@@ -29,6 +42,12 @@ export default {
         // Role Delete Handler
         client.on(Events.GuildRoleDelete, async (role) => {
             try {
+                // Verify client.db exists within the event handler
+                if (!client.db) {
+                    console.error('client.db is undefined in role delete handler');
+                    return;
+                }
+                
                 const guildData = await client.db.Guild.findOne({ guildId: role.guild.id });
                 if (!guildData || !guildData.antiNuke || !guildData.antiNuke.enabled) return;
                 
@@ -41,6 +60,12 @@ export default {
         // Ban Handler
         client.on(Events.GuildBanAdd, async (ban) => {
             try {
+                // Verify client.db exists within the event handler
+                if (!client.db) {
+                    console.error('client.db is undefined in ban handler');
+                    return;
+                }
+                
                 const guildData = await client.db.Guild.findOne({ guildId: ban.guild.id });
                 if (!guildData || !guildData.antiNuke || !guildData.antiNuke.enabled) return;
                 
@@ -53,6 +78,12 @@ export default {
         // Member Remove Handler (for kicks)
         client.on(Events.GuildMemberRemove, async (member) => {
             try {
+                // Verify client.db exists within the event handler
+                if (!client.db) {
+                    console.error('client.db is undefined in member remove handler');
+                    return;
+                }
+                
                 const guildData = await client.db.Guild.findOne({ guildId: member.guild.id });
                 if (!guildData || !guildData.antiNuke || !guildData.antiNuke.enabled) return;
                 
@@ -82,6 +113,12 @@ export default {
             if (!member.user.bot) return; // Only care about bot additions
             
             try {
+                // Verify client.db exists within the event handler
+                if (!client.db) {
+                    console.error('client.db is undefined in bot add handler');
+                    return;
+                }
+                
                 const guildData = await client.db.Guild.findOne({ guildId: member.guild.id });
                 if (!guildData || !guildData.antiNuke || !guildData.antiNuke.enabled) return;
                 
@@ -98,6 +135,12 @@ export default {
 // Helper function to initialize anti-nuke for all guilds
 async function initializeAntiNuke(client) {
     try {
+        // Check if client and client.db exist
+        if (!client || !client.db) {
+            console.error('Client or client.db is undefined in initializeAntiNuke');
+            return;
+        }
+        
         // Fetch all guilds with anti-nuke settings from the database
         const guilds = await client.db.Guild.find({ 'antiNuke.enabled': true });
         
