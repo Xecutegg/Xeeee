@@ -6,7 +6,7 @@ logs/
 *.log
 
 # E
-
+.env
 # Build output
 dist/
 build/
